@@ -1,6 +1,7 @@
 package csvbulk;
 
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -16,8 +17,11 @@ public class RowBatchInsert {
 	private PreparedStatement stmt;
 
 	public RowBatchInsert(String aTable, String[] aHeader, String url,
-			String user, String pwd) throws SQLException {
-		DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+			String user, String pwd, String driverClass) throws SQLException,
+			InstantiationException, IllegalAccessException,
+			ClassNotFoundException {
+		DriverManager.registerDriver((Driver) Class.forName(driverClass)
+				.newInstance());
 		table = aTable;
 		header = aHeader;
 		connection = initializeConnection(url, user, pwd);
@@ -28,7 +32,9 @@ public class RowBatchInsert {
 			String aTable, String[] aHeader) throws SQLException {
 		String sql = initializeSQL(aTable, aHeader);
 		PreparedStatement aStmt = aConnection.prepareStatement(sql);
-		((OraclePreparedStatement) aStmt).setExecuteBatch(1000000);
+		if (aStmt instanceof OraclePreparedStatement) {
+			((OraclePreparedStatement) aStmt).setExecuteBatch(1000000);
+		}
 		return aStmt;
 	}
 
@@ -45,8 +51,8 @@ public class RowBatchInsert {
 				params.append(',');
 			}
 		}
-		sb.append("INSERT /*+ APPEND */ INTO ").append(aTable).append(" (").append(fields)
-				.append(')');
+		sb.append("INSERT /*+ APPEND */ INTO ").append(aTable).append(" (")
+				.append(fields).append(')');
 		sb.append(" VALUES (").append(params).append(')');
 		return sb.toString();
 	}
@@ -71,7 +77,7 @@ public class RowBatchInsert {
 		connection.commit();
 		stmt.close();
 	}
-	
+
 	public void rollback() throws SQLException {
 		connection.rollback();
 		stmt.close();
