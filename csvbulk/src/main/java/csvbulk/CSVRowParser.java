@@ -10,12 +10,12 @@ import com.univocity.parsers.csv.CsvFormat;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
-public class CSVRowProducer implements Runnable {
+public class CSVRowParser implements Runnable {
 
 	private BlockingQueue<CSVRow> queue;
 	private InputStream input;
 
-	public CSVRowProducer(BlockingQueue<CSVRow> queue, InputStream input) {
+	public CSVRowParser(BlockingQueue<CSVRow> queue, InputStream input) {
 		this.queue = queue;
 		this.input = input;
 	}

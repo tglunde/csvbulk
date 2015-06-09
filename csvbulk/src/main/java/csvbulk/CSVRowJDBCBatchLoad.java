@@ -3,19 +3,22 @@ package csvbulk;
 import java.sql.SQLException;
 import java.util.concurrent.BlockingQueue;
 
-public class CSVRowConsumer implements Runnable {
+public class CSVRowJDBCBatchLoad implements Runnable {
 	private BlockingQueue<CSVRow> queue;
 
+	private int batchSize;
 	private String tableName;
 	private String driverClass;
 	private String url;
 	private String userName;
 	private String password;
 
-	public CSVRowConsumer(BlockingQueue<CSVRow> queue, String tableName,
-			String driverClass, String url, String userName, String password) {
+	public CSVRowJDBCBatchLoad(BlockingQueue<CSVRow> queue, int batchSize,
+			String tableName, String driverClass, String url, String userName,
+			String password) {
 		super();
 		this.queue = queue;
+		this.batchSize = batchSize;
 		this.tableName = tableName;
 		this.driverClass = driverClass;
 		this.url = url;
@@ -31,7 +34,7 @@ public class CSVRowConsumer implements Runnable {
 				try {
 					if (rbi == null) {
 						rbi = new RowBatchInsert(tableName, msg.getHeader(),
-								url, userName, password, driverClass);
+								batchSize, url, userName, password, driverClass);
 					}
 					rbi.addRow(msg.getHeader());
 
@@ -39,7 +42,8 @@ public class CSVRowConsumer implements Runnable {
 					if (rbi != null) {
 						try {
 							rbi.rollback();
-						} catch (SQLException e) {}
+						} catch (SQLException e) {
+						}
 					}
 					throw new RuntimeException(sql);
 				}

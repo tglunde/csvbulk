@@ -9,19 +9,20 @@ public class CSVBulkLoad {
 
 	public static void main(String[] args) throws InterruptedException {
 		int parallel = 10;
+		int batchSize = 1000000;
 		String tableName = "NO_PARAM_SET";
 		if (args != null && args.length > 0) {
 			tableName = args[0];
 		}
 		BlockingQueue<CSVRow> queue = new ArrayBlockingQueue<CSVRow>(parallel);
-		CSVRowProducer producer = new CSVRowProducer(queue, Thread
+		CSVRowParser producer = new CSVRowParser(queue, Thread
 				.currentThread().getContextClassLoader()
 				.getResourceAsStream("test.csv"));
 
 		ExecutorService consumerService = Executors
 				.newFixedThreadPool(parallel + 1);
 		for (int i = 0; i < 10; i++) {
-			consumerService.execute(new CSVRowConsumer(queue, tableName,
+			consumerService.execute(new CSVRowJDBCBatchLoad(queue, batchSize, tableName,
 					"oracle.jdbc.driver.OracleDriver",
 					"jdbc:oracle:thin:@presmaus.zd.guj.de:1522:HDWHDPV",
 					"DM_BUS", "00Dj7jSDX2MD67"));

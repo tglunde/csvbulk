@@ -16,24 +16,24 @@ public class RowBatchInsert {
 	private Connection connection;
 	private PreparedStatement stmt;
 
-	public RowBatchInsert(String aTable, String[] aHeader, String url,
-			String user, String pwd, String driverClass) throws SQLException,
-			InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
+	public RowBatchInsert(String aTable, String[] aHeader, int batchSize,
+			String url, String user, String pwd, String driverClass)
+			throws SQLException, InstantiationException,
+			IllegalAccessException, ClassNotFoundException {
 		DriverManager.registerDriver((Driver) Class.forName(driverClass)
 				.newInstance());
 		table = aTable;
 		header = aHeader;
 		connection = initializeConnection(url, user, pwd);
-		stmt = initializeSql(connection, table, header);
+		stmt = initializeSql(connection, batchSize, table, header);
 	}
 
 	private PreparedStatement initializeSql(Connection aConnection,
-			String aTable, String[] aHeader) throws SQLException {
+			int batchSize, String aTable, String[] aHeader) throws SQLException {
 		String sql = initializeSQL(aTable, aHeader);
 		PreparedStatement aStmt = aConnection.prepareStatement(sql);
 		if (aStmt instanceof OraclePreparedStatement) {
-			((OraclePreparedStatement) aStmt).setExecuteBatch(1000000);
+			((OraclePreparedStatement) aStmt).setExecuteBatch(batchSize);
 		}
 		return aStmt;
 	}
